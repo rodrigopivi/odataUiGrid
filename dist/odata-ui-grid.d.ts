@@ -9,13 +9,9 @@ declare module OdataUiGrid {
     }
 }
 declare module OdataUiGrid.Base {
-    interface IOdataUiGridInstance extends uiGrid.IGridInstance {
-        options: uiGrid.IGridOptions;
-        api: uiGrid.IGridApi;
-    }
     interface IOdataUiGridAttrs extends ng.IAttributes {
+        uiGrid: string;
         odataUiGridQueryOptions: string;
-        odataUiGridUseV4: string;
     }
     interface IOdataUiGridPaginationOptions {
         page: number;
@@ -28,6 +24,7 @@ declare module OdataUiGrid.Base {
     interface IOdataUiGridQuery {
         resource: OData.IResourceClass<OData.IResource<any>>;
         provider: OData.Provider<OData.IResource<any>>;
+        gridApi: uiGrid.IGridApi;
         predicate?: OData.Predicate;
         expand?: string[][];
         select?: string[];
@@ -42,13 +39,11 @@ declare module OdataUiGrid.Base {
         scope: boolean;
         require: string;
         link: ng.IDirectiveLinkFn;
-        currentQuery: IOdataUiGridQuery;
-        private originalPredicate;
         filterTermMappings: IFilterTermMappings;
         paginationOptions: IOdataUiGridPaginationOptions;
         initializeGrid: () => void;
-        getData: (currentQuery: IOdataUiGridQuery) => void;
-        refresh: () => void;
+        getData: (odataQueryOptions: IOdataUiGridQuery) => void;
+        refresh: (odataQueryOptions: IOdataUiGridQuery) => void;
         static $inject: string[];
         constructor($compile: ng.ICompileService, $timeout: ng.ITimeoutService, $q: ng.IQService, $odata: OData.Global, $odataresource: OData.IResourceService, uiGridConstants: uiGrid.IUiGridConstants);
     }

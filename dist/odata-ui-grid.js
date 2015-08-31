@@ -42,46 +42,50 @@ var OdataUiGrid;
                 this.restrict = "A";
                 this.scope = false; // important: dont isolate scope;
                 this.require = "uiGrid";
+                // Custom props
                 this.filterTermMappings = {};
                 this.paginationOptions = {
                     page: 1, paginationPageSizes: [25, 50, 75], paginationPageSize: 25, sort: ""
                 };
                 var self = this;
                 this.link = function ($scope, $element, $attrs, uiGridCtrl) {
-                    angular.noop($scope, $element, $attrs);
+                    angular.noop($scope, $element, $attrs, $odataresource);
                     _this.initializeGrid = function () {
-                        var options = uiGridCtrl.grid && uiGridCtrl.grid.options, api = uiGridCtrl.grid && uiGridCtrl.grid.api;
+                        var odataQueryOptions = $scope[$attrs.odataUiGridQueryOptions], options = $scope[$attrs.uiGrid];
                         if (options) {
                             options.useExternalPagination = true;
                             options.useExternalFiltering = true;
                             options.useExternalSorting = true;
-                        }
-                        if (api) {
-                            api.core.on.sortChanged($scope, function (grid, sortColumns) {
-                                angular.noop(grid, sortColumns);
-                                buildSortQuery(_this.currentQuery, sortColumns);
-                                _this.refresh();
-                            });
-                            api.core.on.filterChanged($scope, function () { _this.refresh(); });
-                            if (api.pagination) {
-                                options.paginationPageSize = _this.paginationOptions.paginationPageSize;
-                                options.paginationPageSizes = _this.paginationOptions.paginationPageSize;
-                                options.page = _this.paginationOptions.page;
-                                api.pagination.on.paginationChanged($scope, function (page, paginationPageSize) {
-                                    _this.paginationOptions.page = page;
-                                    options.page = page;
-                                    _this.paginationOptions.paginationPageSize = paginationPageSize;
-                                    options.paginationPageSize = paginationPageSize;
-                                    _this.refresh();
+                            var customRegisterFn = options.onRegisterApi;
+                            options.onRegisterApi = function (api) {
+                                if (customRegisterFn) {
+                                    customRegisterFn(api);
+                                }
+                                odataQueryOptions.gridApi = api;
+                                api.core.on.sortChanged($scope, function (grid, sortColumns) {
+                                    angular.noop(grid, sortColumns);
+                                    buildSortQuery(odataQueryOptions, sortColumns);
+                                    _this.refresh(odataQueryOptions);
                                 });
-                            }
+                                api.core.on.filterChanged($scope, function () { _this.refresh(odataQueryOptions); });
+                                if (api.pagination) {
+                                    options.currentPage = options.currentPage || _this.paginationOptions.page;
+                                    options.paginationPageSize = _this.paginationOptions.paginationPageSize;
+                                    options.paginationPageSizes = _this.paginationOptions.paginationPageSizes;
+                                    api.pagination.on.paginationChanged($scope, function (page, paginationPageSize) {
+                                        options.currentPage = page;
+                                        options.paginationPageSize = paginationPageSize;
+                                        _this.refresh(odataQueryOptions);
+                                    });
+                                }
+                                _this.refresh(odataQueryOptions);
+                            };
                         }
                     };
-                    _this.getData = function (currentQuery) {
-                        var api = uiGridCtrl.grid && uiGridCtrl.grid.api, options = uiGridCtrl.grid && uiGridCtrl.grid.options;
-                        currentQuery.predicate = _this.originalPredicate;
-                        currentQuery.skip = (_this.paginationOptions.page - 1) * _this.paginationOptions.paginationPageSize;
-                        currentQuery.take = _this.paginationOptions.paginationPageSize;
+                    _this.getData = function (odataQueryOptions) {
+                        var api = odataQueryOptions.gridApi, options = api.grid.options;
+                        odataQueryOptions.skip = (options.currentPage - 1) * options.paginationPageSize;
+                        odataQueryOptions.take = options.paginationPageSize;
                         if (api && options) {
                             var success = function (data) {
                                 $timeout(function () {
@@ -90,29 +94,18 @@ var OdataUiGrid;
                                         api.grid.appScope[options.data] = data;
                                     }
                                 });
-                                // api.grid.appScope.$apply();
                             };
                             var error = function () { angular.noop(); };
-                            makeOdataQuery(uiGridCtrl.grid, _this.filterTermMappings, currentQuery, success, error);
+                            makeOdataQuery(odataQueryOptions, _this.filterTermMappings, success, error);
                         }
                     };
                     // undo changes and get all recorde
-                    _this.refresh = function () {
-                        resetCurrentQuery();
-                        _this.getData(_this.currentQuery);
+                    _this.refresh = function (odataQueryOptions) {
+                        resetCurrentQuery(odataQueryOptions);
+                        _this.getData(odataQueryOptions);
                     };
                     initFilterTermMappings();
-                    init();
                     _this.initializeGrid();
-                    _this.refresh();
-                    function init() {
-                        var api = uiGridCtrl.grid && uiGridCtrl.grid.api, odataQueryOptions = api && api.grid.appScope[$attrs.odataUiGridQueryOptions];
-                        if (odataQueryOptions.predicate) {
-                            self.originalPredicate = odataQueryOptions.predicate;
-                        }
-                        self.currentQuery = odataQueryOptions;
-                        resetCurrentQuery();
-                    }
                     function initFilterTermMappings() {
                         // uiGridConstants mappings to odata Op terms
                         self.filterTermMappings[uiGridConstants.filter.STARTS_WITH] = "startswith";
@@ -124,49 +117,44 @@ var OdataUiGrid;
                         self.filterTermMappings[uiGridConstants.filter.LESS_THAN] = "lt";
                         self.filterTermMappings[uiGridConstants.filter.LESS_THAN_OR_EQUAL] = "le";
                     }
-                    function resetCurrentQuery() {
-                        if (self.currentQuery && self.currentQuery.resource) {
-                            self.currentQuery.provider = self.currentQuery.resource.odata(); // Create the provider
-                            self.currentQuery.predicate = self.originalPredicate; // Restore original predicate
-                            // Note: Attribute 'isv4' is not existant at the d.ts file (avoid interface check for now)
-                            if ($attrs.odataUiGridUseV4 !== undefined) {
-                                self.currentQuery.provider["isv4"] = true;
-                            }
+                    function resetCurrentQuery(odataQueryOptions) {
+                        if (odataQueryOptions && odataQueryOptions.resource) {
+                            odataQueryOptions.provider = odataQueryOptions.resource.odata(); // Create the provider
                         }
                         else {
                             throw new Error("Need a valid odataUiGridQueryOptions object with a valid resource.");
                         }
                     }
                     // builds the sort query
-                    function buildSortQuery(currentQuery, sortColumns) {
-                        currentQuery.sort = undefined;
-                        currentQuery.sortDirection = undefined;
+                    function buildSortQuery(odataQueryOptions, sortColumns) {
+                        odataQueryOptions.sort = undefined;
+                        odataQueryOptions.sortDirection = undefined;
                         sortColumns.sort(function (a, b) {
                             if (a.sort.priority === b.sort.priority) {
                                 return 0;
                             }
                             return a.sort.priority > b.sort.priority ? 1 : -1;
                         }).some(function (sortCol, colIndex) {
-                            currentQuery.provider = currentQuery.resource.odata();
-                            currentQuery.sort = sortCol.field;
-                            currentQuery.sortDirection = sortCol.sort.direction;
+                            odataQueryOptions.provider = odataQueryOptions.resource.odata();
+                            odataQueryOptions.sort = sortCol.field;
+                            odataQueryOptions.sortDirection = sortCol.sort.direction;
                             return true;
                         });
                     }
-                    function extendOdataQuery(currentQuery, filterOp, field, term) {
+                    function extendOdataQuery(odataQueryOptions, filterOp, field, term) {
                         if (["startswith", "endswith"].indexOf(filterOp) !== -1) {
-                            currentQuery.provider = currentQuery.provider.filter(new $odata.Func(filterOp, new $odata.Property(field), new $odata.Value(term)), true);
+                            odataQueryOptions.provider = odataQueryOptions.provider.filter(new $odata.Func(filterOp, new $odata.Property(field), new $odata.Value(term)), true);
                         }
                         else if (filterOp === "contains") {
-                            currentQuery.provider = currentQuery.provider["isv4"]
-                                ? currentQuery.provider.filter(new $odata.Func("contains", new $odata.Property(field), new $odata.Value(term)))
-                                : currentQuery.provider.filter(new $odata.Func("substringof", new $odata.Value(term), new $odata.Property(field)));
+                            odataQueryOptions.provider = odataQueryOptions.provider["isv4"]
+                                ? odataQueryOptions.provider.filter(new $odata.Func("contains", new $odata.Property(field), new $odata.Value(term)))
+                                : odataQueryOptions.provider.filter(new $odata.Func("substringof", new $odata.Value(term), new $odata.Property(field)));
                         }
                         else {
                             term = isNaN(term) ? term : parseInt(term, 10);
                             var newPred = new $odata.Predicate(field, filterOp, term);
-                            currentQuery.predicate = currentQuery.predicate
-                                ? currentQuery.predicate.and(newPred)
+                            odataQueryOptions.predicate = odataQueryOptions.predicate
+                                ? odataQueryOptions.predicate.and(newPred)
                                 : newPred;
                         }
                     }
@@ -174,40 +162,54 @@ var OdataUiGrid;
                      * filterChanged is raised after the filter is changed. The nature of the watch expression doesn't allow notification
                      * of what changed, so the receiver of this event will need to re-extract the filter conditions from the columns.
                      */
-                    function makeOdataQuery(grid, mappings, currentQuery, successCb, errorCb) {
+                    function makeOdataQuery(odataQueryOptions, mappings, successCb, errorCb) {
                         var filterHasContent = function (filter) {
                             return filter.term !== undefined && filter.term !== null && filter.term.toString().trim() !== "";
-                        };
-                        grid.columns.filter(function (col) {
-                            return col.enableFiltering && col.filters.length && col.filters.some(filterHasContent);
+                        }, grid = odataQueryOptions.gridApi.grid;
+                        // Note: hack to bypass type safety
+                        grid.options.columnDefs.filter(function (col) {
+                            var ret = false;
+                            if (grid && grid.options && grid.options.enableFiltering) {
+                                ret = col && (col.filter && filterHasContent(col.filter))
+                                    || (col.filters && col.filters.length && col.filters.some(filterHasContent));
+                            }
+                            return ret;
                         }).forEach(function (col) {
                             // Note: only filter columns that declare a filter condition
-                            col.filters.forEach(function (filter) {
-                                // Check filter exists and has content
-                                if (mappings[filter.condition] !== undefined && filterHasContent(filter)) {
-                                    extendOdataQuery(currentQuery, mappings[filter.condition], col.field, filter.term);
+                            if (col.filters) {
+                                col.filters.forEach(function (filter) {
+                                    // Check filter exists and has content
+                                    if (mappings[filter.condition] !== undefined && filterHasContent(filter)) {
+                                        extendOdataQuery(odataQueryOptions, mappings[filter.condition], col.field, filter.term);
+                                    }
+                                });
+                            }
+                            if (col.filter) {
+                                if (mappings[col.filter.condition] !== undefined && filterHasContent(col.filter)) {
+                                    extendOdataQuery(odataQueryOptions, mappings[col.filter.condition], col.field, col.filter.term);
                                 }
-                            });
+                            }
                         });
-                        var provider = currentQuery.provider;
-                        if (currentQuery.predicate) {
-                            provider = provider.filter(currentQuery.predicate);
+                        var provider = odataQueryOptions.provider;
+                        if (odataQueryOptions.predicate) {
+                            provider = provider.filter(odataQueryOptions.predicate);
                         }
-                        if (currentQuery.select) {
-                            provider = provider.select(currentQuery.select);
+                        if (odataQueryOptions.select) {
+                            provider = provider.select(odataQueryOptions.select);
                         }
-                        if (currentQuery.expand && currentQuery.expand.length) {
-                            currentQuery.expand.forEach(function (expandQuery) { provider = provider.expand(expandQuery); });
+                        if (odataQueryOptions.expand && odataQueryOptions.expand.length) {
+                            odataQueryOptions.expand.forEach(function (expandQuery) { provider = provider.expand(expandQuery); });
                         }
-                        if (currentQuery.skip) {
-                            provider = provider.skip(currentQuery.skip);
+                        if (odataQueryOptions.skip) {
+                            provider = provider.skip(odataQueryOptions.skip);
                         }
-                        if (currentQuery.take) {
-                            provider = provider.take(currentQuery.take);
+                        if (odataQueryOptions.take) {
+                            provider = provider.take(odataQueryOptions.take);
                         }
-                        if (currentQuery.sort) {
-                            provider = provider.orderBy(currentQuery.sort, currentQuery.sortDirection);
+                        if (odataQueryOptions.sort) {
+                            provider = provider.orderBy(odataQueryOptions.sort, odataQueryOptions.sortDirection);
                         }
+                        odataQueryOptions.provider = provider;
                         return provider.withInlineCount().query(successCb, errorCb);
                     }
                 };
