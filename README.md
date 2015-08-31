@@ -6,8 +6,9 @@ This is a work in progress and there is a demo application with two grids,
 one using odatav4 and the other odata v3 demo endpoints.
 
 ## How to use
-Just load `odata.ui.grid` module to your main angular application.
+Install the bower package, add it to your index.html and load `odata.ui.grid` module to your main angular application.
 ```
+bower install odata-ui-grid
 angular.module("app", ["odata.ui.grid"]);
 ```
 
