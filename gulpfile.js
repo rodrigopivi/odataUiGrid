@@ -159,7 +159,7 @@
   gulp.task('test', function(callback) { runSequence('compile-tests', 'karma', callback); });
   gulp.task('bower', tasks.bower);
   gulp.task('less', tasks.less);
-  gulp.task('update', function(callback) { runSequence('bower', callback); });
+  gulp.task('update', function(callback) { runSequence('bower', 'tsd', callback); });
   gulp.task('templates', tasks.templates);
   gulp.task('demo-less', tasks.demoLess);
   gulp.task('demo-ts', tasks.demoTs);
