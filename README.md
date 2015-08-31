@@ -5,25 +5,25 @@ UiGrid extension for working with [odata](http://www.odata.org/) protocol thanks
 This is a work in progress and there is a demo application with two grids,
 one using odatav4 and the other odata v3 demo endpoints.
 
-# How to use
+## How to use
 Just load `odata.ui.grid` module to your main angular application.
 ``angular.module("app", ["odata.ui.grid"]);``
 
-# How to run the demo
+## How to run the demo
 The project comes with a demo application and a complete automated gulp build process with dev server, just run:
 ``npm install``
 ``bower install``
 ``gulp dev``
 
-# Limitations and ToDo's
-There are still some problems when filtering 'Int' type columns with filters like 'starts_with'.
-Custom date filters (use a calendar widget selector).
-Unit tests.
+## Limitations and ToDo's
+- There are still some problems when filtering 'Int' type columns with filters like 'starts_with'.
+- Custom date filters (use a calendar widget selector).
+- Unit tests.
 
-# Author
+## Author
 Rodrigo Pimentel
 
-# License
+## License
 The MIT License (MIT)
 
 Copyright (c) 2015 Rodrigo Pimentel
