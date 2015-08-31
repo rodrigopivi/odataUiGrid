@@ -24,11 +24,10 @@
         "karma-phantomjs-launcher": "~0.2.1",
         "karma-chrome-launcher": "~0.2.0",
         "browser-sync": "~2.8.2",
-        "jshint-stylish": "~2.0.1",
         "gulp-tsc": "~0.9.2",
         "gulp-tslint": "~3.2.0",
         "serve-static": "~1.10.0",
-        "tsd": "~0.6.3",
+        "gulp-tsd": "~0.0.4",
         "tslint": "2.*",
         "typescript": "~1.5.3",
         "typescript-tools": "~0.3.1"

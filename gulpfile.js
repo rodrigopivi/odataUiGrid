@@ -23,7 +23,7 @@
     gulp = require('gulp'),
     bower = require('gulp-bower'),
     tsc = require('gulp-tsc'),
-    tsd = require('tsd'),
+    tsd = require('gulp-tsd'),
     concat = require('gulp-concat-util'),
     browserSync = require('browser-sync').create(),
     tslint = require('gulp-tslint'),
