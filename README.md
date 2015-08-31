@@ -7,14 +7,18 @@ one using odatav4 and the other odata v3 demo endpoints.
 
 ## How to use
 Just load `odata.ui.grid` module to your main angular application.
-```angular.module("app", ["odata.ui.grid"]);```
+```
+angular.module("app", ["odata.ui.grid"]);
+```
 
 ## How to run the demo
 The project comes with a demo application and a complete automated gulp build process with dev server, just run:
-```npm install```
-```bower install```
-```gulp build```
-```gulp dev```
+```
+npm install
+bower install
+gulp build
+gulp dev
+```
 
 ## Limitations and ToDo's
 - There are still some problems when filtering 'Int' type columns with filters like 'starts_with'.
