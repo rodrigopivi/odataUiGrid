@@ -12,7 +12,7 @@
     "Rodrigo Pimentel"
   ],
   "main": [
-    "dist/odata-ui-grid.js",
+    "dist/odata-ui-grid.js"
   ],
   "private": false,
   "ignore": [
