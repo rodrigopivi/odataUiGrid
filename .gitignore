@@ -1,0 +1,14 @@
+.DS_Store
+/node_modules
+/vendor
+/typings
+/tmp
+/build
+/log
+/bin
+/obj
+/demo/*.js
+/demo/*.css
+*.csproj
+*.user
+*.sln

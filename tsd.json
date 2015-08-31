@@ -1,0 +1,27 @@
+{
+  "version": "v4",
+  "repo": "borisyankov/DefinitelyTyped",
+  "ref": "master",
+  "path": "typings",
+  "bundle": "typings/tsd.d.ts",
+  "installed": {
+    "jquery/jquery.d.ts": {
+      "commit": "67605e10f6eb01c9d4a0d13719d804d6dea9e1cb"
+    },
+    "jasmine/jasmine.d.ts": {
+      "commit": "67605e10f6eb01c9d4a0d13719d804d6dea9e1cb"
+    },
+    "angularjs/angular.d.ts": {
+      "commit": "67605e10f6eb01c9d4a0d13719d804d6dea9e1cb"
+    },
+    "angularjs/angular-mocks.d.ts": {
+      "commit": "67605e10f6eb01c9d4a0d13719d804d6dea9e1cb"
+    },
+    "ui-grid/ui-grid.d.ts": {
+      "commit": "d2bab5738b84b91d8ee18a68c7b379a9714cf82f"
+    },
+    "angular-odata-resources/angular-odata-resources.d.ts": {
+      "commit": "d2bab5738b84b91d8ee18a68c7b379a9714cf82f"
+    }
+  }
+}

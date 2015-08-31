@@ -1,0 +1,19 @@
+{
+    "compilerOptions": {
+        "module": "commonjs",
+        "sourceMap": true,
+        "declaration": true,
+        "out": "./dist/olap-multi-select.js"
+    },
+    "compileOnSave": false,
+    "buildOnSave": false,
+    "filesGlob": [
+        "lib/**/*.ts",
+        "!lib/**/tests/*.ts"
+    ],
+    "files": [
+        "lib/directives/odataUiGridDirective.ts",
+        "lib/directives/odataUiGridFilterDirective.ts",
+        "lib/odataUiGridBase.ts"
+    ]
+}

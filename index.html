@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" ng-app="app">
+
+<head>
+  <base href="/">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width">
+  <title>odata uiGrid</title>
+  <!-- ========== Vendor stylesheets ========== -->
+  <link rel="stylesheet" href="vendor/bootstrap/dist/css/bootstrap.css" />
+  <!-- ========== Custom stylesheets ========== -->
+  <link rel="stylesheet" href="vendor/angular-ui-grid/ui-grid.css" />
+  <link rel="stylesheet" href="demo/app.css" />
+</head>
+
+<body role="document" style="margin: 20px;">
+  <h2>odata.ui.grid demo</h2>
+  <br />
+  <div ng-include="'demo/demo.html'" ng-controller="testAppController"></div>
+  <br />
+  <!-- ========== Vendor scripts ========== -->
+  <!--script src="vendor/jquery/dist/jquery.js"></script-->
+  <script src="vendor/angular/angular.js"></script>
+  <script src="vendor/angular-odata-resources/build/odataresources.js"></script>
+  <script src="vendor/angular-ui-grid/ui-grid.js"></script>
+  <!-- ========== Library scripts ========== -->
+  <script src="dist/odata-ui-grid.js"></script>
+  <script src="dist/odata-ui-grid.tpl.js"></script>
+
+  <!-- ========== Demo App Scripts ========== -->
+  <script src="demo/app.js"></script>
+  <script src="demo/testAppCtrl.js"></script>
+</body>
+
+</html>
