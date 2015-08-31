@@ -11,6 +11,9 @@
   "authors": [
     "Rodrigo Pimentel"
   ],
+  "main": [
+    "dist/odata-ui-grid.js",
+  ],
   "private": false,
   "ignore": [
     "bin",
@@ -44,6 +47,5 @@
     "angular-mocks": "~1.4.4",
     "angular-scenario": "~1.4.4",
     "jasmine": "~2.3.4"
-  },
-  "private": "false"
+  }
 }
