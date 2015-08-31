@@ -2,6 +2,11 @@
     "name": "odata-ui-grid",
     "version": "0.0.1",
     "description": "odata uiGrid",
+    "repository" : {
+      "type" : "git",
+      "url" : "https://github.com/rodrigopivi/odataUiGrid.git"
+    },
+    "license" : "MIT",
     "devDependencies": {
         "del": "~1.2.1",
         "gulp": "~3.9.0",

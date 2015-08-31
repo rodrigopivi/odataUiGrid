@@ -2,7 +2,12 @@
   "name": "odata-ui-grid",
   "version": "0.0.1",
   "description": "odata uiGrid",
-  "license": "internal",
+  "license": "MIT",
+  "keywords": ["uiGrid", "ngGrid", "Odata"],
+  "repository" : {
+    "type" : "git",
+    "url" : "https://github.com/rodrigopivi/odataUiGrid.git"
+  },
   "authors": [
     "Rodrigo Pimentel"
   ],
@@ -39,5 +44,6 @@
     "angular-mocks": "~1.4.4",
     "angular-scenario": "~1.4.4",
     "jasmine": "~2.3.4"
-  }
+  },
+  "private": "false"
 }
