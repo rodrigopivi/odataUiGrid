@@ -156,6 +156,7 @@
   gulp.task('clean', tasks.clean);
   gulp.task('compile-tests', tasks.compileTests);
   gulp.task('karma', tasks.karma);
+  gulp.task('tsd', tasks.tsd);
   gulp.task('test', function(callback) { runSequence('compile-tests', 'karma', callback); });
   gulp.task('bower', tasks.bower);
   gulp.task('less', tasks.less);
