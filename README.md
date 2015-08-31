@@ -13,6 +13,7 @@ Just load `odata.ui.grid` module to your main angular application.
 The project comes with a demo application and a complete automated gulp build process with dev server, just run:
 ``npm install``
 ``bower install``
+``gulp build``
 ``gulp dev``
 
 ## Limitations and ToDo's
