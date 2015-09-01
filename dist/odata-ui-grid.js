@@ -28,16 +28,8 @@ var OdataUiGrid;
     var Base;
     (function (Base) {
         "use strict";
-        /*
-         * Grid that gets all data from breeze automatically, requires that a "breezeFactory" is implemented.
-         *    e.g.: <div style="height: 500px"
-         *               ui-grid="gridOptions"
-         *               breeze-grid>
-         *          </div>
-         */
         var OdataUiGrid = (function () {
             function OdataUiGrid($compile, $timeout, $q, $odata, $odataresource, uiGridConstants) {
-                var _this = this;
                 this.priority = -200;
                 this.restrict = "A";
                 this.scope = false; // important: dont isolate scope;
@@ -50,62 +42,8 @@ var OdataUiGrid;
                 var self = this;
                 this.link = function ($scope, $element, $attrs, uiGridCtrl) {
                     angular.noop($scope, $element, $attrs, $odataresource);
-                    _this.initializeGrid = function () {
-                        var odataQueryOptions = $scope[$attrs.odataUiGridQueryOptions], options = $scope[$attrs.uiGrid];
-                        if (options) {
-                            options.useExternalPagination = true;
-                            options.useExternalFiltering = true;
-                            options.useExternalSorting = true;
-                            var customRegisterFn = options.onRegisterApi;
-                            options.onRegisterApi = function (api) {
-                                if (customRegisterFn) {
-                                    customRegisterFn(api);
-                                }
-                                odataQueryOptions.gridApi = api;
-                                api.core.on.sortChanged($scope, function (grid, sortColumns) {
-                                    angular.noop(grid, sortColumns);
-                                    buildSortQuery(odataQueryOptions, sortColumns);
-                                    _this.refresh(odataQueryOptions);
-                                });
-                                api.core.on.filterChanged($scope, function () { _this.refresh(odataQueryOptions); });
-                                if (api.pagination) {
-                                    options.currentPage = options.currentPage || _this.paginationOptions.page;
-                                    options.paginationPageSize = _this.paginationOptions.paginationPageSize;
-                                    options.paginationPageSizes = _this.paginationOptions.paginationPageSizes;
-                                    api.pagination.on.paginationChanged($scope, function (page, paginationPageSize) {
-                                        options.currentPage = page;
-                                        options.paginationPageSize = paginationPageSize;
-                                        _this.refresh(odataQueryOptions);
-                                    });
-                                }
-                                _this.refresh(odataQueryOptions);
-                            };
-                        }
-                    };
-                    _this.getData = function (odataQueryOptions) {
-                        var api = odataQueryOptions.gridApi, options = api.grid.options;
-                        odataQueryOptions.skip = (options.currentPage - 1) * options.paginationPageSize;
-                        odataQueryOptions.take = options.paginationPageSize;
-                        if (api && options) {
-                            var success = function (data) {
-                                $timeout(function () {
-                                    if (data !== undefined && data.count !== undefined) {
-                                        options.totalItems = data.count;
-                                        api.grid.appScope[options.data] = data;
-                                    }
-                                });
-                            };
-                            var error = function () { angular.noop(); };
-                            makeOdataQuery(odataQueryOptions, _this.filterTermMappings, success, error);
-                        }
-                    };
-                    // undo changes and get all recorde
-                    _this.refresh = function (odataQueryOptions) {
-                        resetCurrentQuery(odataQueryOptions);
-                        _this.getData(odataQueryOptions);
-                    };
                     initFilterTermMappings();
-                    _this.initializeGrid();
+                    initializeGrid();
                     function initFilterTermMappings() {
                         // uiGridConstants mappings to odata Op terms
                         self.filterTermMappings[uiGridConstants.filter.STARTS_WITH] = "startswith";
@@ -117,44 +55,115 @@ var OdataUiGrid;
                         self.filterTermMappings[uiGridConstants.filter.LESS_THAN] = "lt";
                         self.filterTermMappings[uiGridConstants.filter.LESS_THAN_OR_EQUAL] = "le";
                     }
-                    function resetCurrentQuery(odataQueryOptions) {
+                    function initializeGrid() {
+                        var odataQueryOptions = $scope[$attrs.odataUiGridQueryOptions], options = $scope[$attrs.uiGrid];
+                        if (options) {
+                            options.useExternalPagination = true;
+                            options.useExternalFiltering = true;
+                            options.useExternalSorting = true;
+                            var customRegisterFn = options.onRegisterApi;
+                            options.onRegisterApi = function (api) {
+                                if (customRegisterFn) {
+                                    customRegisterFn(api);
+                                }
+                                odataQueryOptions.$currentQuery = {
+                                    gridApi: api,
+                                    provider: odataQueryOptions.resource.odata(),
+                                    predicate: odataQueryOptions.predicate,
+                                    expand: odataQueryOptions.expand,
+                                    select: odataQueryOptions.select,
+                                    skip: odataQueryOptions.skip,
+                                    take: odataQueryOptions.take,
+                                    sort: odataQueryOptions.sort,
+                                    sortDirection: odataQueryOptions.sortDirection
+                                };
+                                api.core.on.sortChanged($scope, function (grid, sortColumns) {
+                                    angular.noop(grid);
+                                    refresh(odataQueryOptions);
+                                });
+                                api.core.on.filterChanged($scope, function () { refresh(odataQueryOptions); });
+                                if (api.pagination) {
+                                    options.currentPage = options.currentPage || self.paginationOptions.page;
+                                    options.paginationPageSize = self.paginationOptions.paginationPageSize;
+                                    options.paginationPageSizes = self.paginationOptions.paginationPageSizes;
+                                    api.pagination.on.paginationChanged($scope, function (page, paginationPageSize) {
+                                        options.currentPage = page;
+                                        options.paginationPageSize = paginationPageSize;
+                                        refresh(odataQueryOptions);
+                                    });
+                                }
+                                refresh(odataQueryOptions);
+                            };
+                        }
+                    }
+                    function getData(odataQueryOptions) {
+                        var api = odataQueryOptions.$currentQuery.gridApi, options = api.grid.options;
+                        odataQueryOptions.$currentQuery.skip = (options.currentPage - 1) * options.paginationPageSize;
+                        odataQueryOptions.$currentQuery.take = options.paginationPageSize;
+                        if (api && options) {
+                            var success = function (data) {
+                                $timeout(function () {
+                                    if (data !== undefined && data.count !== undefined) {
+                                        options.totalItems = data.count;
+                                        api.grid.appScope[options.data] = data;
+                                    }
+                                });
+                            };
+                            var error = function () { angular.noop(); };
+                            makeOdataQuery(odataQueryOptions, self.filterTermMappings, success, error);
+                        }
+                    }
+                    function refresh(odataQueryOptions) {
+                        resetCurrentQuery(odataQueryOptions);
+                        buildSortQuery(odataQueryOptions);
+                        getData(odataQueryOptions);
+                    }
+                    function resetCurrentQuery(odataQueryOptions, api) {
                         if (odataQueryOptions && odataQueryOptions.resource) {
-                            odataQueryOptions.provider = odataQueryOptions.resource.odata(); // Create the provider
+                            var newCurrentQuery = {
+                                gridApi: api || odataQueryOptions.$currentQuery.gridApi,
+                                provider: odataQueryOptions.resource.odata(),
+                                predicate: odataQueryOptions.predicate,
+                                expand: odataQueryOptions.expand,
+                                select: odataQueryOptions.select,
+                                skip: odataQueryOptions.skip,
+                                take: odataQueryOptions.take,
+                                sort: odataQueryOptions.sort,
+                                sortDirection: odataQueryOptions.sortDirection
+                            };
+                            odataQueryOptions.$currentQuery = newCurrentQuery;
                         }
                         else {
                             throw new Error("Need a valid odataUiGridQueryOptions object with a valid resource.");
                         }
                     }
-                    // builds the sort query
-                    function buildSortQuery(odataQueryOptions, sortColumns) {
-                        odataQueryOptions.sort = undefined;
-                        odataQueryOptions.sortDirection = undefined;
+                    function buildSortQuery(odataQueryOptions) {
+                        var sortColumns = odataQueryOptions.$currentQuery.gridApi.grid.columns.filter(function (col) { return Object.keys(col.sort).length; });
                         sortColumns.sort(function (a, b) {
                             if (a.sort.priority === b.sort.priority) {
                                 return 0;
                             }
                             return a.sort.priority > b.sort.priority ? 1 : -1;
                         }).some(function (sortCol, colIndex) {
-                            odataQueryOptions.provider = odataQueryOptions.resource.odata();
-                            odataQueryOptions.sort = sortCol.field;
-                            odataQueryOptions.sortDirection = sortCol.sort.direction;
+                            odataQueryOptions.$currentQuery.sort = sortCol.field;
+                            odataQueryOptions.$currentQuery.sortDirection = sortCol.sort.direction;
                             return true;
                         });
                     }
                     function extendOdataQuery(odataQueryOptions, filterOp, field, term) {
                         if (["startswith", "endswith"].indexOf(filterOp) !== -1) {
-                            odataQueryOptions.provider = odataQueryOptions.provider.filter(new $odata.Func(filterOp, new $odata.Property(field), new $odata.Value(term)), true);
+                            odataQueryOptions.$currentQuery.provider = odataQueryOptions.$currentQuery.provider.filter(new $odata.Func(filterOp, new $odata.Property(field), new $odata.Value(term)), true);
                         }
                         else if (filterOp === "contains") {
-                            odataQueryOptions.provider = odataQueryOptions.provider["isv4"]
-                                ? odataQueryOptions.provider.filter(new $odata.Func("contains", new $odata.Property(field), new $odata.Value(term)))
-                                : odataQueryOptions.provider.filter(new $odata.Func("substringof", new $odata.Value(term), new $odata.Property(field)));
+                            odataQueryOptions.$currentQuery.provider = odataQueryOptions.$currentQuery.provider["isv4"]
+                                ? odataQueryOptions.$currentQuery.provider.filter(new $odata.Func("contains", new $odata.Property(field), new $odata.Value(term)))
+                                : odataQueryOptions.$currentQuery.provider.filter(new $odata.Func("substringof", new $odata.Value(term), new $odata.Property(field)));
                         }
                         else {
                             term = isNaN(term) ? term : parseInt(term, 10);
                             var newPred = new $odata.Predicate(field, filterOp, term);
-                            odataQueryOptions.predicate = odataQueryOptions.predicate
-                                ? odataQueryOptions.predicate.and(newPred)
+                            odataQueryOptions.$currentQuery.predicate = odataQueryOptions.$currentQuery.predicate
+                                ? odataQueryOptions.$currentQuery.predicate.and(newPred)
                                 : newPred;
                         }
                     }
@@ -165,13 +174,12 @@ var OdataUiGrid;
                     function makeOdataQuery(odataQueryOptions, mappings, successCb, errorCb) {
                         var filterHasContent = function (filter) {
                             return filter.term !== undefined && filter.term !== null && filter.term.toString().trim() !== "";
-                        }, grid = odataQueryOptions.gridApi.grid;
+                        }, grid = odataQueryOptions.$currentQuery.gridApi.grid;
                         // Note: hack to bypass type safety
-                        grid.options.columnDefs.filter(function (col) {
+                        grid.columns.filter(function (col) {
                             var ret = false;
                             if (grid && grid.options && grid.options.enableFiltering) {
-                                ret = col && (col.filter && filterHasContent(col.filter))
-                                    || (col.filters && col.filters.length && col.filters.some(filterHasContent));
+                                ret = col && col.filters && col.filters.length && col.filters.some(filterHasContent);
                             }
                             return ret;
                         }).forEach(function (col) {
@@ -179,37 +187,32 @@ var OdataUiGrid;
                             if (col.filters) {
                                 col.filters.forEach(function (filter) {
                                     // Check filter exists and has content
-                                    if (mappings[filter.condition] !== undefined && filterHasContent(filter)) {
+                                    if (filter && mappings[filter.condition] !== undefined && filterHasContent(filter)) {
                                         extendOdataQuery(odataQueryOptions, mappings[filter.condition], col.field, filter.term);
                                     }
                                 });
                             }
-                            if (col.filter) {
-                                if (mappings[col.filter.condition] !== undefined && filterHasContent(col.filter)) {
-                                    extendOdataQuery(odataQueryOptions, mappings[col.filter.condition], col.field, col.filter.term);
-                                }
-                            }
                         });
-                        var provider = odataQueryOptions.provider;
-                        if (odataQueryOptions.predicate) {
-                            provider = provider.filter(odataQueryOptions.predicate);
+                        var provider = odataQueryOptions.$currentQuery.provider;
+                        if (odataQueryOptions.$currentQuery.predicate) {
+                            provider = provider.filter(odataQueryOptions.$currentQuery.predicate);
                         }
-                        if (odataQueryOptions.select) {
-                            provider = provider.select(odataQueryOptions.select);
+                        if (odataQueryOptions.$currentQuery.select) {
+                            provider = provider.select(odataQueryOptions.$currentQuery.select);
                         }
-                        if (odataQueryOptions.expand && odataQueryOptions.expand.length) {
-                            odataQueryOptions.expand.forEach(function (expandQuery) { provider = provider.expand(expandQuery); });
+                        if (odataQueryOptions.$currentQuery.expand && odataQueryOptions.$currentQuery.expand.length) {
+                            odataQueryOptions.$currentQuery.expand.forEach(function (expandQuery) { provider = provider.expand(expandQuery); });
                         }
-                        if (odataQueryOptions.skip) {
-                            provider = provider.skip(odataQueryOptions.skip);
+                        if (odataQueryOptions.$currentQuery.skip) {
+                            provider = provider.skip(odataQueryOptions.$currentQuery.skip);
                         }
-                        if (odataQueryOptions.take) {
-                            provider = provider.take(odataQueryOptions.take);
+                        if (odataQueryOptions.$currentQuery.take) {
+                            provider = provider.take(odataQueryOptions.$currentQuery.take);
                         }
-                        if (odataQueryOptions.sort) {
-                            provider = provider.orderBy(odataQueryOptions.sort, odataQueryOptions.sortDirection);
+                        if (odataQueryOptions.$currentQuery.sort) {
+                            provider = provider.orderBy(odataQueryOptions.$currentQuery.sort, odataQueryOptions.$currentQuery.sortDirection);
                         }
-                        odataQueryOptions.provider = provider;
+                        odataQueryOptions.$currentQuery.provider = provider;
                         return provider.withInlineCount().query(successCb, errorCb);
                     }
                 };

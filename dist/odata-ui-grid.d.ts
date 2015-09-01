@@ -21,10 +21,7 @@ declare module OdataUiGrid.Base {
     interface IFilterTermMappings {
         [uiGridConstId: number]: string;
     }
-    interface IOdataUiGridQuery {
-        resource: OData.IResourceClass<OData.IResource<any>>;
-        provider: OData.Provider<OData.IResource<any>>;
-        gridApi: uiGrid.IGridApi;
+    interface IOdataQueryParams {
         predicate?: OData.Predicate;
         expand?: string[][];
         select?: string[];
@@ -32,6 +29,14 @@ declare module OdataUiGrid.Base {
         take?: number;
         sort?: string;
         sortDirection?: string;
+    }
+    interface IOdataInitialStateQuery extends IOdataQueryParams {
+        resource: OData.IResourceClass<OData.IResource<any>>;
+        $currentQuery?: IOdataCurrentQuery;
+    }
+    interface IOdataCurrentQuery extends IOdataQueryParams {
+        gridApi: uiGrid.IGridApi;
+        provider: OData.Provider<OData.IResource<any>>;
     }
     class OdataUiGrid implements ng.IDirective {
         priority: number;
@@ -41,9 +46,6 @@ declare module OdataUiGrid.Base {
         link: ng.IDirectiveLinkFn;
         filterTermMappings: IFilterTermMappings;
         paginationOptions: IOdataUiGridPaginationOptions;
-        initializeGrid: () => void;
-        getData: (odataQueryOptions: IOdataUiGridQuery) => void;
-        refresh: (odataQueryOptions: IOdataUiGridQuery) => void;
         static $inject: string[];
         constructor($compile: ng.ICompileService, $timeout: ng.ITimeoutService, $q: ng.IQService, $odata: OData.Global, $odataresource: OData.IResourceService, uiGridConstants: uiGrid.IUiGridConstants);
     }

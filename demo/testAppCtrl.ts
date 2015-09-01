@@ -3,8 +3,8 @@ module TestApp {
   "use strict";
 
   export interface ITestAppScope extends ng.IScope {
-    odataV4Options: OdataUiGrid.Base.IOdataUiGridQuery;
-    odataV3Options: OdataUiGrid.Base.IOdataUiGridQuery;
+    odataV4Options: OdataUiGrid.Base.IOdataInitialStateQuery;
+    odataV3Options: OdataUiGrid.Base.IOdataInitialStateQuery;
     list: any[];
     list2: any[];
     gridOptions: any;
@@ -16,13 +16,13 @@ module TestApp {
 
     constructor($scope: ITestAppScope, $odataresource: OData.IResourceService, uiGridConstants: uiGrid.IUiGridConstants) {
 
-      $scope.odataV4Options = <OdataUiGrid.Base.IOdataUiGridQuery>{
+      $scope.odataV4Options = <OdataUiGrid.Base.IOdataInitialStateQuery>{
         resource: $odataresource("http://services.odata.org/V4/Northwind/Northwind.svc/Orders", {}, {}, {
           isodatav4: true
         })
       };
 
-      $scope.odataV3Options = <OdataUiGrid.Base.IOdataUiGridQuery>{
+      $scope.odataV3Options = <OdataUiGrid.Base.IOdataInitialStateQuery>{
         resource: $odataresource("http://services.odata.org/Northwind/Northwind.svc/Orders", {}, {
           odata: {
             method: "GET",
