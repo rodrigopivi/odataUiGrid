@@ -5,6 +5,8 @@ UiGrid extension for working with [odata](http://www.odata.org/) protocol thanks
 This is a work in progress and there is a demo application with two grids,
 one using odatav4 and the other odata v3 demo endpoints.
 
+You can also look at the online [working demo](http://plnkr.co/8mp5MQ).
+
 ## How to use
 Install the bower package, add it to your index.html and load `odata.ui.grid` module to your main angular application.
 ```
