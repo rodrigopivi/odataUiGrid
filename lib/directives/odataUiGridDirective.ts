@@ -19,6 +19,7 @@ module OdataUiGrid.Base {
     // see https://github.com/devnixs/ODataAngularResources
     resource: OData.IResourceClass<OData.IResource<any>>;
     $currentQuery?: IOdataCurrentQuery;
+    debounceDelay: number;
   }
   export interface IOdataCurrentQuery extends IOdataQueryParams {
     gridApi: uiGrid.IGridApi;
@@ -52,7 +53,8 @@ module OdataUiGrid.Base {
 
       this.link = ($scope: ng.IScope, $element: ng.IAugmentedJQuery, $attrs: IOdataUiGridAttrs, uiGridCtrl: any) => {
         angular.noop($scope, $element, $attrs, $odataresource);
-
+        var cancelCurrentRequest: () => void;
+        var searchDelay: ng.IPromise<any>;
         initFilterTermMappings();
         initializeGrid();
 
@@ -125,14 +127,20 @@ module OdataUiGrid.Base {
               });
             };
             var error = () => { angular.noop(); };
-            makeOdataQuery(odataQueryOptions, self.filterTermMappings, success, error);
+            makeOdataQuery(odataQueryOptions, self.filterTermMappings).then(success, error);
           }
         }
 
         function refresh(odataQueryOptions: IOdataInitialStateQuery): void {
-          resetCurrentQuery(odataQueryOptions);
-          buildSortQuery(odataQueryOptions);
-          getData(odataQueryOptions);
+          if (searchDelay) {
+            $timeout.cancel(searchDelay);
+            searchDelay = null;
+          }
+          searchDelay = $timeout((opts: IOdataInitialStateQuery) => {
+            resetCurrentQuery(opts);
+            buildSortQuery(opts);
+            getData(opts);
+          }, odataQueryOptions.debounceDelay, true, odataQueryOptions);
         }
 
         function resetCurrentQuery(odataQueryOptions: IOdataInitialStateQuery, api?: uiGrid.IGridApi) {
@@ -169,6 +177,7 @@ module OdataUiGrid.Base {
         }
 
         function extendOdataQuery(odataQueryOptions: IOdataInitialStateQuery, filterOp: string, field: string, term: any): void {
+          field = field.replace(".", "/");
           if (["startswith", "endswith"].indexOf(filterOp) !== -1) {
             odataQueryOptions.$currentQuery.provider = odataQueryOptions.$currentQuery.provider.filter(
               new $odata.Func(filterOp, new $odata.Property(field), new $odata.Value(term)), true
@@ -190,8 +199,10 @@ module OdataUiGrid.Base {
          * filterChanged is raised after the filter is changed. The nature of the watch expression doesn't allow notification
          * of what changed, so the receiver of this event will need to re-extract the filter conditions from the columns.
          */
-        function makeOdataQuery(odataQueryOptions: IOdataInitialStateQuery, mappings: IFilterTermMappings,
-          successCb: (result: OData.IResource<any>[]) => void, errorCb: () => void): OData.IResource<any>[] {
+        function makeOdataQuery(odataQueryOptions: IOdataInitialStateQuery, mappings: IFilterTermMappings): ng.IPromise<OData.IResource<any>[]> {
+          if (cancelCurrentRequest) {
+            cancelCurrentRequest();
+          }
           var filterHasContent = (filter: any) => {
             return filter.term !== undefined && filter.term !== null && filter.term.toString().trim() !== "";
           },
@@ -224,7 +235,20 @@ module OdataUiGrid.Base {
           if (odataQueryOptions.$currentQuery.take) { provider = provider.take(odataQueryOptions.$currentQuery.take); }
           if (odataQueryOptions.$currentQuery.sort) { provider = provider.orderBy(odataQueryOptions.$currentQuery.sort, odataQueryOptions.$currentQuery.sortDirection); }
           odataQueryOptions.$currentQuery.provider = provider;
-          return provider.withInlineCount().query(successCb, errorCb);
+          var request = $q((resolve: (data: OData.IResource<any>[]) => void, reject: () => void): void => {
+            cancelCurrentRequest = () => {
+              reject();
+              cancelCurrentRequest = null;
+            };
+            provider.withInlineCount().query((result: OData.IResource<any>[]) => {
+              cancelCurrentRequest = null;
+              resolve(result);
+            }, () => {
+              cancelCurrentRequest = null;
+              reject();
+            });
+          });
+          return request;
         }
 
       };

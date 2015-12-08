@@ -50,6 +50,8 @@ var OdataUiGrid;
                 var self = this;
                 this.link = function ($scope, $element, $attrs, uiGridCtrl) {
                     angular.noop($scope, $element, $attrs, $odataresource);
+                    var cancelCurrentRequest;
+                    var searchDelay;
                     initFilterTermMappings();
                     initializeGrid();
                     function initFilterTermMappings() {
@@ -118,13 +120,19 @@ var OdataUiGrid;
                                 });
                             };
                             var error = function () { angular.noop(); };
-                            makeOdataQuery(odataQueryOptions, self.filterTermMappings, success, error);
+                            makeOdataQuery(odataQueryOptions, self.filterTermMappings).then(success, error);
                         }
                     }
                     function refresh(odataQueryOptions) {
-                        resetCurrentQuery(odataQueryOptions);
-                        buildSortQuery(odataQueryOptions);
-                        getData(odataQueryOptions);
+                        if (searchDelay) {
+                            $timeout.cancel(searchDelay);
+                            searchDelay = null;
+                        }
+                        searchDelay = $timeout(function (opts) {
+                            resetCurrentQuery(opts);
+                            buildSortQuery(opts);
+                            getData(opts);
+                        }, odataQueryOptions.debounceDelay, true, odataQueryOptions);
                     }
                     function resetCurrentQuery(odataQueryOptions, api) {
                         if (odataQueryOptions && odataQueryOptions.resource) {
@@ -159,6 +167,7 @@ var OdataUiGrid;
                         });
                     }
                     function extendOdataQuery(odataQueryOptions, filterOp, field, term) {
+                        field = field.replace(".", "/");
                         if (["startswith", "endswith"].indexOf(filterOp) !== -1) {
                             odataQueryOptions.$currentQuery.provider = odataQueryOptions.$currentQuery.provider.filter(new $odata.Func(filterOp, new $odata.Property(field), new $odata.Value(term)), true);
                         }
@@ -179,7 +188,10 @@ var OdataUiGrid;
                      * filterChanged is raised after the filter is changed. The nature of the watch expression doesn't allow notification
                      * of what changed, so the receiver of this event will need to re-extract the filter conditions from the columns.
                      */
-                    function makeOdataQuery(odataQueryOptions, mappings, successCb, errorCb) {
+                    function makeOdataQuery(odataQueryOptions, mappings) {
+                        if (cancelCurrentRequest) {
+                            cancelCurrentRequest();
+                        }
                         var filterHasContent = function (filter) {
                             return filter.term !== undefined && filter.term !== null && filter.term.toString().trim() !== "";
                         }, grid = odataQueryOptions.$currentQuery.gridApi.grid;
@@ -221,7 +233,20 @@ var OdataUiGrid;
                             provider = provider.orderBy(odataQueryOptions.$currentQuery.sort, odataQueryOptions.$currentQuery.sortDirection);
                         }
                         odataQueryOptions.$currentQuery.provider = provider;
-                        return provider.withInlineCount().query(successCb, errorCb);
+                        var request = $q(function (resolve, reject) {
+                            cancelCurrentRequest = function () {
+                                reject();
+                                cancelCurrentRequest = null;
+                            };
+                            provider.withInlineCount().query(function (result) {
+                                cancelCurrentRequest = null;
+                                resolve(result);
+                            }, function () {
+                                cancelCurrentRequest = null;
+                                reject();
+                            });
+                        });
+                        return request;
                     }
                 };
             }
