@@ -1,3 +1,11 @@
+/**
+ * odata-ui-grid - 0.0.2
+ * odata uiGrid
+ * 
+ * 
+ * Released under the MIT license.
+ * Copyright 2015 Rodrigo Pimentel and contributors.
+ */
 /// <reference path='../typings/tsd.d.ts' />
 // main module
 var OdataUiGrid;
@@ -56,7 +64,7 @@ var OdataUiGrid;
                         self.filterTermMappings[uiGridConstants.filter.LESS_THAN_OR_EQUAL] = "le";
                     }
                     function initializeGrid() {
-                        var odataQueryOptions = $scope[$attrs.odataUiGridQueryOptions], options = $scope[$attrs.uiGrid];
+                        var odataQueryOptions = $scope.$eval($attrs.odataUiGridQueryOptions), options = $scope.$eval($attrs.uiGrid);
                         if (options) {
                             options.useExternalPagination = true;
                             options.useExternalFiltering = true;

@@ -1,3 +1,11 @@
+/**
+ * odata-ui-grid - 0.0.2
+ * odata uiGrid
+ * 
+ * 
+ * Released under the MIT license.
+ * Copyright 2015 Rodrigo Pimentel and contributors.
+ */
 /// <reference path="../typings/tsd.d.ts" />
 declare module OdataUiGrid {
     class Modules {

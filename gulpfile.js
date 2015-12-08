@@ -17,7 +17,15 @@
       dest: 'dist',
       livereload: ['index.html',  'demo/**/*.js', 'demo/**/*.css', 'dist/**/*.js', 'dist/**/*.css', '!dist/**/tests/*.ts']
     };
-
+    var banner = ['/**',  
+      ' * <%= pkg.name %> - <%= pkg.version %>',  
+      ' * <%= pkg.description %>',  
+      ' * ',  
+      ' * <%= pkg.homepage %>',  
+      ' * Released under the <%= pkg.license %> license.',  
+      ' * Copyright <%= (new Date()).getFullYear() %> <%= pkg.author %> and contributors.',  
+      ' */',  
+      ''].join('\n');  
   /* ***** LOAD DEPENDENCIES ***** */
   var del = require('del'),
     gulp = require('gulp'),
@@ -38,6 +46,7 @@
     pkg = require('./package.json'),
     runSequence = require('run-sequence'),
     uglify = require('gulp-uglify'),
+    header = require('gulp-header'),
     karma = require('karma').Server;
 
   /* *********** ERROR HANDLING *********** */
@@ -118,6 +127,7 @@
       return gulp.src(paths.dest + '/' + pkg.name + '.js')
         .pipe(rename({ suffix: '.min' }))
         .pipe(uglify().on('error', handleError))
+        .pipe(header(banner, { pkg : pkg }))
         .pipe(gulp.dest(paths.dest));
     },
     compileScripts: function() {
@@ -129,6 +139,7 @@
           declaration: true,
           out: pkg.name + '.js'
         }).on('error', handleError))
+        .pipe(header(banner, { pkg : pkg }))
         .pipe(gulp.dest(paths.dest))
         .on('error', handleError);
     },

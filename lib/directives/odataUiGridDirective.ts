@@ -69,8 +69,8 @@ module OdataUiGrid.Base {
         }
 
         function initializeGrid(): void {
-          var odataQueryOptions = <IOdataInitialStateQuery>$scope[$attrs.odataUiGridQueryOptions],
-              options = $scope[$attrs.uiGrid];
+          var odataQueryOptions = <IOdataInitialStateQuery>$scope.$eval($attrs.odataUiGridQueryOptions),
+              options = $scope.$eval($attrs.uiGrid);
           if (options) {
             options.useExternalPagination = true;
             options.useExternalFiltering = true;
