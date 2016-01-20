@@ -5,7 +5,7 @@
   "description": "odata uiGrid",
   "repository": {
     "type": "git",
-    "url": "https://github.com/emulamer/odataUiGrid"
+    "url": "https://github.com/rodrigopivi/odataUiGrid"
   },
   "license": "MIT",
   "devDependencies": {
