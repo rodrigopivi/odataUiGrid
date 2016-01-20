@@ -4,7 +4,7 @@
  * 
  * 
  * Released under the MIT license.
- * Copyright 2015 Rodrigo Pimentel and contributors.
+ * Copyright 2016 Rodrigo Pimentel and contributors.
  */
 /// <reference path='../typings/tsd.d.ts' />
 // main module
@@ -293,16 +293,12 @@ var OdataUiGrid;
                                 }
                                 return ret;
                             }
-                        },
-                        post: function ($scope, $element, $attrs) {
-                            angular.noop($element, $attrs);
-                            if ($scope.col && $scope.col.grid) {
-                            }
                         }
                     };
                 };
             }
-            // important: list of custom filters available
+            // Important: list of custom filters available, we could add here filters like "date", that will be rendered as custom directives
+            // TODO: add date filter that uses a widget to select the date range.
             OdataUiGridFilter.customFiltersProvided = ["date"];
             OdataUiGridFilter.$inject = ["$compile", "$templateCache", "uiGridConstants"];
             return OdataUiGridFilter;

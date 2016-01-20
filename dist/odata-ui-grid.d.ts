@@ -4,7 +4,7 @@
  * 
  * 
  * Released under the MIT license.
- * Copyright 2015 Rodrigo Pimentel and contributors.
+ * Copyright 2016 Rodrigo Pimentel and contributors.
  */
 /// <reference path="../typings/tsd.d.ts" />
 declare module OdataUiGrid {

@@ -7,7 +7,8 @@ module OdataUiGrid.Base {
         public scope: boolean = false;
         public compile: ng.IDirectiveCompileFn;
 
-        // important: list of custom filters available
+        // Important: list of custom filters available, we could add here filters like "date", that will be rendered as custom directives
+        // TODO: add date filter that uses a widget to select the date range.
         public static customFiltersProvided: string[] = ["date"];
 
         public static $inject = ["$compile", "$templateCache", "uiGridConstants"];
@@ -40,12 +41,6 @@ module OdataUiGrid.Base {
                                 });
                             }
                             return ret;
-                        }
-                    },
-                    post: ($scope: any, $element: ng.IAugmentedJQuery, $attrs: ng.IAttributes) => {
-                        angular.noop($element, $attrs);
-                        if ($scope.col && $scope.col.grid) {
-
                         }
                     }
                 };
