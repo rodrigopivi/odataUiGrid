@@ -20,6 +20,7 @@ module OdataUiGrid.Base {
     resource: OData.IResourceClass<OData.IResource<any>>;
     $currentQuery?: IOdataCurrentQuery;
     debounceDelay: number;
+    preventInitialLoad: boolean;
   }
   export interface IOdataCurrentQuery extends IOdataQueryParams {
     gridApi: uiGrid.IGridApi;
@@ -107,7 +108,9 @@ module OdataUiGrid.Base {
                   refresh(odataQueryOptions);
                 });
               }
-              refresh(odataQueryOptions);
+              if (!odataQueryOptions.preventInitialLoad) {
+                  refresh(odataQueryOptions);
+              }
             };
           }
         }
