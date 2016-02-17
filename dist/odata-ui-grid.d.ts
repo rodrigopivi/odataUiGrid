@@ -42,6 +42,7 @@ declare module OdataUiGrid.Base {
         resource: OData.IResourceClass<OData.IResource<any>>;
         $currentQuery?: IOdataCurrentQuery;
         debounceDelay: number;
+        preventInitialLoad: boolean;
     }
     interface IOdataCurrentQuery extends IOdataQueryParams {
         gridApi: uiGrid.IGridApi;
