@@ -100,8 +100,8 @@ module OdataUiGrid.Base {
               api.core.on.filterChanged($scope, () => { refresh(odataQueryOptions); });
               if (api.pagination) { // only exists when pagination is enabled
                 options.currentPage = options.currentPage || self.paginationOptions.page;
-                options.paginationPageSize = self.paginationOptions.paginationPageSize;
-                options.paginationPageSizes = self.paginationOptions.paginationPageSizes;
+                options.paginationPageSize = options.paginationPageSize || self.paginationOptions.paginationPageSize;
+                options.paginationPageSizes = options.paginationPageSizes || self.paginationOptions.paginationPageSizes;
                 api.pagination.on.paginationChanged($scope, (page: number, paginationPageSize: number) => {
                   options.currentPage = page;
                   options.paginationPageSize = paginationPageSize;
