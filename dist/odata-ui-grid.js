@@ -94,15 +94,17 @@ var OdataUiGrid;
                                 api.core.on.filterChanged($scope, function () { refresh(odataQueryOptions); });
                                 if (api.pagination) {
                                     options.currentPage = options.currentPage || self.paginationOptions.page;
-                                    options.paginationPageSize = self.paginationOptions.paginationPageSize;
-                                    options.paginationPageSizes = self.paginationOptions.paginationPageSizes;
+                                    options.paginationPageSize = options.paginationPageSize || self.paginationOptions.paginationPageSize;
+                                    options.paginationPageSizes = options.paginationPageSizes || self.paginationOptions.paginationPageSizes;
                                     api.pagination.on.paginationChanged($scope, function (page, paginationPageSize) {
                                         options.currentPage = page;
                                         options.paginationPageSize = paginationPageSize;
                                         refresh(odataQueryOptions);
                                     });
                                 }
-                                refresh(odataQueryOptions);
+                                if (!odataQueryOptions.preventInitialLoad) {
+                                    refresh(odataQueryOptions);
+                                }
                             };
                         }
                     }

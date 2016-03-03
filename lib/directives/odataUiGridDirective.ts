@@ -20,6 +20,7 @@ module OdataUiGrid.Base {
     resource: OData.IResourceClass<OData.IResource<any>>;
     $currentQuery?: IOdataCurrentQuery;
     debounceDelay: number;
+    preventInitialLoad: boolean;
   }
   export interface IOdataCurrentQuery extends IOdataQueryParams {
     gridApi: uiGrid.IGridApi;
@@ -99,15 +100,17 @@ module OdataUiGrid.Base {
               api.core.on.filterChanged($scope, () => { refresh(odataQueryOptions); });
               if (api.pagination) { // only exists when pagination is enabled
                 options.currentPage = options.currentPage || self.paginationOptions.page;
-                options.paginationPageSize = self.paginationOptions.paginationPageSize;
-                options.paginationPageSizes = self.paginationOptions.paginationPageSizes;
+                options.paginationPageSize = options.paginationPageSize || self.paginationOptions.paginationPageSize;
+                options.paginationPageSizes = options.paginationPageSizes || self.paginationOptions.paginationPageSizes;
                 api.pagination.on.paginationChanged($scope, (page: number, paginationPageSize: number) => {
                   options.currentPage = page;
                   options.paginationPageSize = paginationPageSize;
                   refresh(odataQueryOptions);
                 });
               }
-              refresh(odataQueryOptions);
+              if (!odataQueryOptions.preventInitialLoad) {
+                  refresh(odataQueryOptions);
+              }
             };
           }
         }
