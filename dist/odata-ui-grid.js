@@ -163,7 +163,7 @@ var OdataUiGrid;
                             }
                             return a.sort.priority > b.sort.priority ? 1 : -1;
                         }).some(function (sortCol, colIndex) {
-                            odataQueryOptions.$currentQuery.sort = sortCol.field;
+                            odataQueryOptions.$currentQuery.sort = sortCol.field ? sortCol.field.replace('.','/') : null;
                             odataQueryOptions.$currentQuery.sortDirection = sortCol.sort.direction;
                             return true;
                         });
