@@ -163,13 +163,12 @@ var OdataUiGrid;
                             }
                             return a.sort.priority > b.sort.priority ? 1 : -1;
                         }).some(function (sortCol, colIndex) {
-                            odataQueryOptions.$currentQuery.sort = sortCol.field;
+                            odataQueryOptions.$currentQuery.sort = (sortCol.field || "").replace(".", "/");
                             odataQueryOptions.$currentQuery.sortDirection = sortCol.sort.direction;
                             return true;
                         });
                     }
                     function extendOdataQuery(odataQueryOptions, filterOp, field, term) {
-                        field = field.replace(".", "/");
                         if (["startswith", "endswith"].indexOf(filterOp) !== -1) {
                             odataQueryOptions.$currentQuery.provider = odataQueryOptions.$currentQuery.provider.filter(new $odata.Func(filterOp, new $odata.Property(field), new $odata.Value(term)), true);
                         }
